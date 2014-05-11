@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    hexagonal_domain (0.0.1.pre.alpha)
+    hexagonal_domain (0.0.1)
       activemodel (~> 4.0)
       colorize (~> 0.7)
       virtus (~> 1.0)

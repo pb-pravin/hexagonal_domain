@@ -1,1 +1,3 @@
 = 0.0.1
+* <tt>Entities::Base</tt> class defined
+* <tt>UseCases::Base</tt> class defined

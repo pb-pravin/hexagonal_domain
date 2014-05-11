@@ -34,13 +34,15 @@ module HexagonalDomain
     #
     #     MyEntity.repository = MyEntityRepository
     #
-    # Take into concideration that both `repository_class_methods` and 
-    # `repository_object_methods` are private and should be used inside
-    # the class declaration, whereas `repository` method is public and
+    # Take into concideration that both <tt>repository_class_methods</tt> and 
+    # <tt>repository_object_methods</tt> are private and should be used inside
+    # the class declaration, whereas <tt>repository</tt> method is public and
     # is expected to be used outside of the class.
     #
-    # The class also includes `Virtus.model` and `ActiveModel::Validations`
-    # to provide helpers `attribute` (from virtus) and `validates`.
+    # The class also includes <tt>Virtus.model</tt> and 
+    # <tt>ActiveModel::Validations</tt> to provide helpers:
+    # * <tt>attribute</tt> (from virtus)
+    # * <tt>validates</tt>.
     #
     #     require "hexagonal_domain"
     #

@@ -16,7 +16,7 @@ Base class for domain entities, decoupled from the ActiveRecord.
 Entities are expected to describe your domain entities in isolation from 
 a repository (ActiveRecord, DataMapper, database, file, cachestore etc.).
 
-Entities are responcible for data validation.
+Entities are responsible for data validation.
 They also provide interface between use cases and repository - by delegation all
 the storage methods (find, save, destroy etc., etc.) to the repository.
 
@@ -41,15 +41,17 @@ and then define a corresponding repository class:
     MyEntity.repository = MyEntityRepository
 
 in case of Rails App, repository class setting should be made in a corresponding
-initializer in the `config/initializers/` directory.
+initializer in the <tt>config/initializers/</tt> directory.
 
-Take into concideration that both `repository_class_methods` and 
-`repository_object_methods` are private and should be used inside the class
-declaration, whereas `repository` method is public and is expected to be used
-outside of the class.
+Take into concideration that both <tt>repository_class_methods</tt> and 
+<tt>repository_object_methods</tt> are private and should be used inside
+the class declaration, whereas <tt>repository</tt> method is public and
+is expected to be called outside.
 
-The class also includes `Virtus.model` and `ActiveModel::Validations` modules
-to provide corresponding helers: `attribute` (from virtus) and `validates`.
+The class also includes <tt>Virtus.model</tt> and
+<tt>ActiveModel::Validations</tt> modules to provide corresponding class helpers
+* <tt>attribute</tt> (from virtus)
+* <tt>validates</tt>.
 
     require "hexagonal_domain"
 
@@ -108,13 +110,13 @@ See the link:CHANGELOG
 
 == Reading
 
-[1] Uncle Bob's article {The Clean Architecture}[http://blog.8thlight.com/uncle-bob/2012/08/13/the-clean-architecture.html]
-[2] ... and his talk {Architecture the Lost Years}[http://confreaks.com/videos/759-rubymidwest2011-keynote-architecture-the-lost-years]
-[3] Alistair Cockburn article {Hexagonal Architecture}[http://alistair.cockburn.us/Hexagonal+architecture]
-[4] Matt Wynne's talk {Hexagonal Rails}[http://www.confreaks.com/videos/977-goruco2012-hexagonal-rails]
-[5] Jim Weirich talk on {Decoupling from Rails}[http://www.youtube.com/watch?v=tg5RFeSfBM4]
-[6] The great CodeClimate article {7 Patterns to Refactor Fat ActiveRecord Models}[http://blog.codeclimate.com/blog/2012/10/17/7-ways-to-decompose-fat-activerecord-models/]
-[7] Mike Ebert article {The Repository Pattern}[http://blog.8thlight.com/mike-ebert/2013/03/23/the-repository-pattern.html]
+* Uncle Bob's article {The Clean Architecture}[http://blog.8thlight.com/uncle-bob/2012/08/13/the-clean-architecture.html]
+* ... and his talk {Architecture the Lost Years}[http://confreaks.com/videos/759-rubymidwest2011-keynote-architecture-the-lost-years]
+* Alistair Cockburn article {Hexagonal Architecture}[http://alistair.cockburn.us/Hexagonal+architecture]
+* Matt Wynne's talk {Hexagonal Rails}[http://www.confreaks.com/videos/977-goruco2012-hexagonal-rails]
+* Jim Weirich talk on {Decoupling from Rails}[http://www.youtube.com/watch?v=tg5RFeSfBM4]
+* The great CodeClimate article {7 Patterns to Refactor Fat ActiveRecord Models}[http://blog.codeclimate.com/blog/2012/10/17/7-ways-to-decompose-fat-activerecord-models/]
+* Mike Ebert article {The Repository Pattern}[http://blog.8thlight.com/mike-ebert/2013/03/23/the-repository-pattern.html]
 
 == License
 
