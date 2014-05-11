@@ -58,13 +58,13 @@ module HexagonalDomain
 
         it "делегирует методы объекта репозиторию" do
           %w(save destroy).each do |method|
-            BaseRepository.any_instance.stub(method){ raise self.entity.inspect }
-            expect{ Base.send method }.to raise_error{ entity.inspect }
+            BaseRepository.any_instance.stub(method.to_sym).and_return{ self.entity }
+            entity.send(method).should == entity
           end
         end
 
         it "делегирует репозиторию только перечисленные методы объекта" do
-          expect{ Base.send :join }.to raise_error{ NoMethodError }
+          expect{ entity.public_send :join }.to raise_error{ NoMethodError }
         end
       end
     end
