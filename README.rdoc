@@ -1,0 +1,121 @@
+= HexagonalDomain
+
+{<img src="https://badge.fury.io/rb/hexagonal_domain.png" alt="Gem Version" />}[http://badge.fury.io/rb/hexagonal_domain]
+{<img src="https://travis-ci.org/nepalez/hexagonal_domain.svg" alt="Build Status" />}[https://travis-ci.org/nepalez/hexagonal_domain]
+{<img src="https://codeclimate.com/github/nepalez/hexagonal_domain.png" />}[https://codeclimate.com/github/nepalez/hexagonal_domain]
+{<img src="https://gemnasium.com/nepalez/hexagonal_domain.svg" alt="Dependency Status" />}[https://gemnasium.com/nepalez/hexagonal_domain]
+{<img src="https://coveralls.io/repos/nepalez/hexagonal_domain/badge.png" alt="Coverage Status" />}[https://coveralls.io/r/nepalez/hexagonal_domain]
+
+The module declares two basic classes to create domain models following the
+Hexagonal (clean) architecture principles.
+
+== Entities::Base
+
+Base class for domain entities, decoupled from the ActiveRecord.
+
+Entities are expected to describe your domain entities in isolation from 
+a repository (ActiveRecord, DataMapper, database, file, cachestore etc.).
+
+Entities are responcible for data validation.
+They also provide interface between use cases and repository - by delegation all
+the storage methods (find, save, destroy etc., etc.) to the repository.
+
+Any entity class should be connected to its repository class following
+the "Repository Pattern" (subcase of the "Adapter Pattern").
+
+=== Usage
+
+Inherit your class from the base and declare methods delegated to repository:
+
+    class MyEntity < HexagonalDomain::Entities::Base
+
+      # Declares the only methods delegated to a repository
+      repository_class_methods  :find, :where
+      repository_object_methods :save, :destroy
+
+      # entity-specific attributes and validations
+    end
+
+and then define a corresponding repository class:
+
+    MyEntity.repository = MyEntityRepository
+
+in case of Rails App, repository class setting should be made in a corresponding
+initializer in the `config/initializers/` directory.
+
+Take into concideration that both `repository_class_methods` and 
+`repository_object_methods` are private and should be used inside the class
+declaration, whereas `repository` method is public and is expected to be used
+outside of the class.
+
+The class also includes `Virtus.model` and `ActiveModel::Validations` modules
+to provide corresponding helers: `attribute` (from virtus) and `validates`.
+
+    require "hexagonal_domain"
+
+    class Doc < HexagonalDomain::Entities::Base
+
+      repository_class_methods  :find, :where
+      repository_object_methods :save, :destroy
+
+      attribute :number, String
+      attribute :date,   Date
+
+      validates :number, :date, presence: true
+    end
+    
+== UseCases::Base
+
+Base class for domain model use cases, decoupled from the ActionController.
+
+Use cases provide complex actions, presumably by user request.
+They are isolated from specific controllers, following the 
+"Service Object Pattern" or "Interactor Pattern" and the "Observer Pattern".
+
+=== Usage
+
+Inherit your use case from the class and define a #run method:
+
+    class YourCase < HexagonalDomain::UseCases::Base
+      def run
+        begin
+          # define actions
+        rescue
+          publish :error
+        else
+          publish :success
+        end
+      end
+    end
+    
+== Installation
+
+Add the gem to your Gemspec file:
+
+    gem "hexagonal_domain"
+
+Or install it manually
+
+    gem install hexagonal_domain
+
+== Changelog
+
+See the link:CHANGELOG
+
+== TODO
+
+* Decouple views from the Action View
+
+== Reading
+
+[1] Uncle Bob's article {The Clean Architecture}[http://blog.8thlight.com/uncle-bob/2012/08/13/the-clean-architecture.html]
+[2] ... and his talk {Architecture the Lost Years}[http://confreaks.com/videos/759-rubymidwest2011-keynote-architecture-the-lost-years]
+[3] Alistair Cockburn article {Hexagonal Architecture}[http://alistair.cockburn.us/Hexagonal+architecture]
+[4] Matt Wynne's talk {Hexagonal Rails}[http://www.confreaks.com/videos/977-goruco2012-hexagonal-rails]
+[5] Jim Weirich talk on {Decoupling from Rails}[http://www.youtube.com/watch?v=tg5RFeSfBM4]
+[6] The great CodeClimate article {7 Patterns to Refactor Fat ActiveRecord Models}[http://blog.codeclimate.com/blog/2012/10/17/7-ways-to-decompose-fat-activerecord-models/]
+[7] Mike Ebert article {The Repository Pattern}[http://blog.8thlight.com/mike-ebert/2013/03/23/the-repository-pattern.html]
+
+== License
+
+This project rocks and uses MIT link:LICENSE.
