@@ -102,7 +102,7 @@ Or install it manually
 
 == Changelog
 
-See the {CHANGELOG}[CHANGELOG.rdoc]
+See the CHANGELOG[link:CHANGELOG.rdoc]
 
 == TODO
 
