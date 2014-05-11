@@ -44,6 +44,7 @@ GEM
     mime-types (2.2)
     minitest (5.3.3)
     multi_json (1.10.0)
+    rake (10.3.1)
     rest-client (1.6.7)
       mime-types (>= 1.16)
     rspec (2.14.1)
@@ -79,4 +80,5 @@ PLATFORMS
 DEPENDENCIES
   coveralls
   hexagonal_domain!
+  rake (~> 10.3)
   rspec (~> 2.14)
