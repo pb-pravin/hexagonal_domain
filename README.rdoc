@@ -89,6 +89,34 @@ Inherit your use case from the class and define a #run method:
         end
       end
     end
+
+For example, you can use it in a controller:
+
+    class YourController < ActionController::Base
+
+      # Methods to be called by user requests
+
+      def your_case
+        use_case = YourCase.new params
+        use_case.subscribe self # results will be published to the controller
+        use_case.subscribe Logger.new # ...and to some logger
+        # ...and to anybody else (mailer etc.)
+        use_case.run
+      end
+
+      # Methods to be called by use cases
+
+      def error
+        # do something
+      end
+
+      def success
+        # do something
+      end
+    end
+
+Here controller doesn't care about business logic, implemented by use cases,
+it only calls right case, subscribes listeners and washes its hands.
     
 == Installation
 
