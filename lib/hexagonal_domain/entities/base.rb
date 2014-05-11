@@ -115,7 +115,7 @@ module HexagonalDomain
 
         # Delegates methods to the entity object's repository object.
         def method_missing(name, *args, &block)
-          super unless self.class.repository_methods.include?(name.to_s)
+          super unless self.class.send(:repository_methods).include?(name.to_s)
           repository.public_send name, *args, &block
         end
     end
