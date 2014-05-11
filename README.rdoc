@@ -102,7 +102,7 @@ Or install it manually
 
 == Changelog
 
-See the link:CHANGELOG
+See the {CHANGELOG}[link:CHANGELOG]
 
 == TODO
 
