@@ -61,6 +61,14 @@ module HexagonalDomain
       include Virtus.model
       include ActiveModel::Validations
 
+      def self.included
+        class_deprecated_message
+      end
+
+      def self.inherited
+        class_deprecated_message
+      end
+
       class << self
 
         # Sets a repository
@@ -117,6 +125,10 @@ module HexagonalDomain
         def method_missing(name, *args, &block)
           super unless self.class.send(:repository_methods).include?(name.to_s)
           repository.send name, *args, &block
+        end
+
+        def class_deprecated_message
+          warn "[DEPRECATED] The HexagonalDomain::Entities::Base class is deprecated. Instead of using it as an active record, declare your entities as a simple structures and add corresponding mappers (see HexagonalDomain::Mappers::Base)."
         end
     end
   end

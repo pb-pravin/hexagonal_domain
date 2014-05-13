@@ -9,63 +9,147 @@
 The module declares two basic classes to create domain models following the
 Hexagonal (clean) architecture principles.
 
-== Entities::Base
+== Domain architecture review
 
-Base class for domain entities, decoupled from the ActiveRecord.
+The architecture of your domain model is expected to include those main parts:
 
-Entities are expected to describe your domain entities in isolation from 
-a repository (ActiveRecord, DataMapper, database, file, cachestore etc.).
+=== Entities
 
-Entities are responsible for data validation.
-They also provide interface between use cases and repository - by delegation all
-the storage methods (find, save, destroy etc., etc.) to the repository.
+Entities - classes that define only your domain entities structure, not
+they behavior (ORM model, not the Active record one). They serve as a 
+pure Model ("M" in MVC) level of your domain (the "O" level in ORM).
 
-Any entity class should be connected to its repository class following
-the "Repository Pattern" (subcase of the "Adapter Pattern").
+Entities know nothing about business use cases, controllers, repository etc. 
+This allows to fully separate a View layer from the controller one (in MVC).
+Your views will receive data only, without any assigned methods to save or
+extract them from DB. They can change nothing in a database.
 
-=== Usage
+Entities are fully separated from DB. Special mappers should be used to
+save entities to a repository or extract them out.
 
-Inherit your class from the base and declare methods delegated to repository:
+=== Decorators
 
-    class MyEntity < HexagonalDomain::Entities::Base
+Decorators - classes that extends entities with an additional methods needed
+to your presentation layer. The "V" letter of a domain model "MVC". They
+know all about Entities, but nothing about use cases.
 
-      # Declares the only methods delegated to a repository
-      repository_class_methods  :find, :where
-      repository_object_methods :save, :destroy
+=== Use Cases
 
-      # entity-specific attributes and validations
+Use Cases - the "C" letter of domain "MVC". They know about Entities and
+Decorators, as far as Data Mappers. But they are fully separated from external
+controllers (such as Rails Action Controller).
+
+Use cases provide complex business logics by a controller requests and
+publishes their results to corresponding listerers (publishers, loggers etc.)
+
+=== Mappers
+
+Data Mappers contain lower-level CRUD actions for entities. They serves as a 
+domain adapters to external repositories (the "M" in ORM pattern). Mappers
+provide the interface to external repository (for example to the ActiveRecord
+models of a Rails App).
+
+As an interfaces, separated from repositories, mappers can be used in
+Use Cases as a part of inner Domain model functionality.
+
+== About the gem
+
+The gem provides basic classes for 3 of 4 parts of domain model:
+
+* Mappers::Base - basic class for data mappers
+* Decorators::Base - basic class for decorators
+* UseCases::Base - basic class for use cases
+
+To simplify development it also provides additional class
+
+* Mappers::Simple
+
+that provides a mapper with CRUD (find, where, save! and destroy!) methods
+for entities that are mapped 1:1 to the database structure. This method 
+cannot be used to map complex entities based on several database tables each.
+
+== Mappers::Base
+
+Base class for mapping entity to a corresponding repository.
+
+=== Define an entity to map
+
+Inside a mapper class declaration first define an entity class to map:
+
+    class YourMapper < HexagonalDomain::Mappers::Base
+      
+      maps YourEntity
+      # ...
+
+  Usage of the mapper without an entity class defined raises an error:
+
+    class YourMapper < HexagonalDomain::Mappers::Base
     end
 
-and then define a corresponding repository class:
+    YourMapper.new # => <NotImplementedError "An entity klass to map by YourMapper hasn't been set.">
 
-    MyEntity.repository = MyEntityRepository
+=== Define a repository to map to
 
-in case of Rails App, repository class setting should be made in a corresponding
-initializer in the <tt>config/initializers/</tt> directory.
+You should also define a repository to map to. You should do it outside of
+   the mapper class (for example, do it within a Rails App initializer):
 
-Take into concideration that both <tt>repository_class_methods</tt> and 
-<tt>repository_object_methods</tt> are private and should be used inside
-the class declaration, whereas <tt>repository</tt> method is public and
-is expected to be called outside.
+    YourMapper.maps_to YourModel
 
-The class also includes <tt>Virtus.model</tt> and
-<tt>ActiveModel::Validations</tt> modules to provide corresponding class helpers
-* <tt>attribute</tt> (from virtus)
-* <tt>validates</tt>.
+=== Define operations
 
-    require "hexagonal_domain"
+Remember, that a mapper should only provide abstract interface for a
+repository, which is not a part of your domain.
 
-    class Doc < HexagonalDomain::Entities::Base
+Instead of concrete repository use <tt>YourMapper.repository</tt> method
+to call the repository class inside the mapper.
 
-      repository_class_methods  :find, :where
-      repository_object_methods :save, :destroy
+    class YourMapper
+      
+      def self.find(params)
+        result = repository.where(params).first
 
-      attribute :number, String
-      attribute :date,   Date
-
-      validates :number, :date, presence: true
+        # The result is a repository class object.
+        # Convert it to the entity object:
+        return entity.new result.attributes
+      end
     end
-    
+
+=== Initialization
+
+Initialize your mapper for an entity
+
+    entity = YourEntity.new
+    mapper = YourMapper.new entity
+    mapper.save! # the method should be defined inside your mapper
+
+Initilization initializes a repository object and assigns it to 
+a @repository attribute of the mapper instance.
+
+=== Base mapper helpers
+
+==== #entity
+
+An instance method to convert a repository instance to the entity
+
+    mapper = YourMapper.new entity
+    mapper.entity # => entity
+
+    mapper.entity(YourRepository.new) # => some entity
+
+Use it in your instance methods:
+
+    class YourMapper
+      
+      def save!
+        @repository.save!
+        entity # => without params returns a @repository object
+      end
+
+      def destroy!
+        @repository.destroy! and return entity
+      end
+    end
+
 == UseCases::Base
 
 Base class for domain model use cases, decoupled from the ActionController.
@@ -98,8 +182,8 @@ For example, you can use it in a controller:
 
       def your_case
         use_case = YourCase.new params
-        use_case.subscribe self # results will be published to the controller
-        use_case.subscribe Logger.new # ...and to some logger
+        use_case.subscribe self           # results will be published back to the controller
+        use_case.subscribe YourLogger.new # ...and to some logger
         # ...and to anybody else (mailer etc.)
         use_case.run
       end
@@ -115,9 +199,75 @@ For example, you can use it in a controller:
       end
     end
 
-Here controller doesn't care about business logic, implemented by use cases,
-it only calls right case, subscribes listeners and washes its hands.
-    
+The controller above doesn't care about domain business logic,
+it only defines who should do what, calls orders and washes its hands.
+
+=== Note
+
+In the example above the controller plays one more special role. It acts not
+only as a controller, but as a results publisher. 
+
+You can create a special publisher for this role and extract methods such as
+<tt>error</tt> and <tt>success</tt> to that publisher, as for some logger
+and mailers.
+
+      def your_case
+        use_case = YourCase.new params
+        use_case.subscribe YourPublisher.new(self)
+        use_case.subscribe YourLogger.new
+        use_case.run
+      end
+
+Then a controller will have no other methods except for called by http requests.
+
+== Decorators::Base
+
+Base object for decorators.
+
+=== Declare a class to decorate
+
+Declares private class method <tt>decorates</tt> to define decorated
+entity class:
+
+    class MyDecorator < HexagonalDomain::Decorators::Base
+      decorates MyEntity
+      
+      # add some methods
+    end
+
+Initializing new instance before entity definition raises an error:
+
+    class MyDecorator < HexagonalDomain::Decorators::Base
+    end
+
+    MyDecorator.new
+    # => <NotImplementedError "A class to be decorated by MyDecorator hasn't been defined yet.">
+
+=== Initialize an instance
+
+Give an entity to be decorated:
+
+    entity = MyEntity.new
+    decorator = MyDecorator.new entity
+
+The entity is available for reading:
+
+    decorator.entity
+
+An entity should have a type, defined by <tt>decorator</tt> method. 
+In case of wrong type an error is raised:
+
+    decorator.new 1
+    # => <ArgumentError "MyDecorator decorates objects of MyEntity class. Instead an object of Integer class has been given.">
+
+=== Entity methods call
+
+Instance methods are delegated to the entity:
+
+    entity.name = "Some name"
+    decorator = MyDecorator.new entity
+    decorator.name # => entity.name     
+
 == Installation
 
 Add the gem to your Gemspec file:

@@ -1,3 +1,10 @@
+= 0.0.3
+* <tt>Entities::Base</tt> class is deprecated
+  Define entities as a simple structures, not an active record (meaning the structure and its repository method in one box) ones.
+  Then declare a corresponding Data Mapper (for example, inherit it from the <tt>Mappers::Base</tt> class).
+* <tt>Mappers::Base</tt> class defined
+* <tt>Decorators::Base</tt> class defined
+
 = 0.0.2
 * Bugs fixed in <tt>Entities::Base</tt> and its specs
 
